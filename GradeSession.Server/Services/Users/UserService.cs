@@ -48,6 +48,6 @@ public sealed class UserService(IUserRepository users) : IUserService
 
     private static string CreateUserId()
     {
-        return $"usr_{Guid.NewGuid():N}";
+        return $"usr{Guid.NewGuid():N}";
     }
 }

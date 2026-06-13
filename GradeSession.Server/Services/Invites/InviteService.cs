@@ -203,6 +203,6 @@ public sealed class InviteService(IInviteRepository invites, ISessionRepository 
 
     private static string CreateInviteId()
     {
-        return $"inv_{Guid.NewGuid():N}";
+        return $"inv{Guid.NewGuid():N}";
     }
 }

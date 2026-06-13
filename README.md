@@ -100,6 +100,11 @@ services:
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_URLS: http://+:8080
 
+      Jwt__Issuer: grade-session
+      Jwt__Audience: grade-session-client-app
+      Jwt__SecretKey: dev-secret-key-change-me-grade-session-very-long
+      Jwt__ExpirationDays: "90"
+
       Storage__Provider: Etcd
       Storage__Etcd__ConnectionString: http://etcd:2379
       Storage__Etcd__KeyPrefix: /grade-session/prod

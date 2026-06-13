@@ -216,21 +216,21 @@ public sealed class SessionService(ISessionRepository sessions, IUserRepository 
 
     private static string CreateSessionId()
     {
-        return $"ses_{Guid.NewGuid():N}";
+        return $"ses{Guid.NewGuid():N}";
     }
 
     private static string CreateStudentId()
     {
-        return $"stu_{Guid.NewGuid():N}";
+        return $"stu{Guid.NewGuid():N}";
     }
 
     private static string CreateCriterionId()
     {
-        return $"crt_{Guid.NewGuid():N}";
+        return $"crt{Guid.NewGuid():N}";
     }
 
     private static string CreateCommitteeSlotId()
     {
-        return $"csl_{Guid.NewGuid():N}";
+        return $"csl{Guid.NewGuid():N}";
     }
 }

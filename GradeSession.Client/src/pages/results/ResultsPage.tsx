@@ -391,7 +391,6 @@ function SummaryAlert({ isSecretary }: { isSecretary: boolean }) {
         type="info"
         showIcon
         title="Финальные оценки после обсуждения сохраняются автоматически"
-        description="Измените значение в колонке оценки по итогам обсуждения. Сохранение произойдёт после ухода из поля."
       />
     );
   }
