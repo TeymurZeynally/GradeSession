@@ -8,9 +8,9 @@ public sealed class Criterion
 
     public string? Description { get; init; }
 
-    public int MinScore { get; init; };
+    public int MinScore { get; init; }
 
-    public int MaxScore { get; init; };
+    public int MaxScore { get; init; }
 
     public decimal Weight { get; init; } = 1;
 }

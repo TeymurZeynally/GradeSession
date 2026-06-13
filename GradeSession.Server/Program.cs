@@ -35,7 +35,7 @@ builder.Services.AddSwaggerGen(o =>
 });
 
 
-builder.Services.AddGradeSessionStorage();
+builder.Services.AddGradeSessionStorage(builder.Configuration);
 builder.Services.AddGradeSessionServices(builder.Configuration);
 builder.Services.AddGradeSessionSecurity(builder.Configuration);
 builder.Services.AddGradeSessionRateLimiting(builder.Configuration);
@@ -45,8 +45,11 @@ var app = builder.Build();
 app.UseDefaultFiles();
 app.MapStaticAssets();
 
-app.UseSwagger();
-app.UseSwaggerUI();
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
 app.UseAuthentication();
 app.UseRateLimiter();

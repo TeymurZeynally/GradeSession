@@ -353,7 +353,7 @@ export function CreateSessionPage() {
               <Alert
                 type="info"
                 showIcon
-                message="Можно вставить список студентов или загрузить CSV/TXT-файл"
+                title="Можно вставить список студентов или загрузить CSV/TXT-файл"
                 description={
                   <Space orientation="vertical" size={4}>
                     <Text>
@@ -564,7 +564,7 @@ export function CreateSessionPage() {
               <Alert
                 type="info"
                 showIcon
-                message="Состав комиссии можно вставить списком или загрузить CSV/TXT-файл"
+                title="Состав комиссии можно вставить списком или загрузить CSV/TXT-файл"
                 description={
                   <Space orientation="vertical" size={4}>
                     <Text>
@@ -1211,7 +1211,7 @@ function SectionError({ message: errorMessage }: { message?: string }) {
     return null;
   }
 
-  return <Alert type="error" showIcon message={errorMessage} />;
+  return <Alert type="error" showIcon title={errorMessage} />;
 }
 
 function parseStudentsCsv(text: string): StudentRow[] {

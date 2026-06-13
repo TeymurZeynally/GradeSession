@@ -226,14 +226,14 @@ export function InvitesPage() {
                 <Alert
                   type="info"
                   showIcon
-                  message="Ссылки-приглашения создаются автоматически"
+                  title="Ссылки-приглашения создаются автоматически"
                   description="Для этой сессии ссылки ещё не выпускались, поэтому мы создаём их сразу при открытии страницы."
                 />
               ) : (
                 <Alert
                   type={hasExistingInvitesWithoutVisibleLinks ? 'warning' : 'info'}
                   showIcon
-                  message={
+                  title={
                     hasExistingInvitesWithoutVisibleLinks
                       ? 'Ссылки уже выпускались раньше, но их URL недоступен после перезагрузки страницы'
                       : 'QR-коды скрыты размытием'

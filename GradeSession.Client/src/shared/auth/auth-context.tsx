@@ -61,7 +61,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   if (error) {
     return (
       <div style={{ padding: 24 }}>
-        <Alert type="error" message={error} showIcon />
+        <Alert type="error" title={error} showIcon />
       </div>
     );
   }

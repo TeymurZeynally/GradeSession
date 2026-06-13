@@ -1,0 +1,58 @@
+services:
+  etcd:
+    image: gcr.io/etcd-development/etcd:v3.6.12
+    container_name: grade-session-etcd
+    command:
+      - /usr/local/bin/etcd
+      - --name=grade-session-etcd
+      - --data-dir=/etcd-data
+      - --listen-client-urls=http://0.0.0.0:2379
+      - --advertise-client-urls=http://etcd:2379
+      - --listen-peer-urls=http://0.0.0.0:2380
+      - --initial-advertise-peer-urls=http://etcd:2380
+      - --initial-cluster=grade-session-etcd=http://etcd:2380
+      - --initial-cluster-token=grade-session-local
+      - --initial-cluster-state=new
+      - --auto-compaction-mode=revision
+      - --auto-compaction-retention=1000
+      - --quota-backend-bytes=8589934592
+    ports:
+      - "2379:2379"
+      - "2380:2380"
+    volumes:
+      - grade-session-etcd-data:/etcd-data
+    healthcheck:
+      test: ["CMD", "etcdctl", "--endpoints=http://localhost:2379", "endpoint", "health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  server:
+    build:
+      context: .
+      dockerfile: GradeSession.Server/Dockerfile
+    container_name: grade-session-server
+    depends_on:
+      etcd:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+
+      Storage__Provider: Etcd
+      Storage__Etcd__ConnectionString: http://etcd:2379
+      Storage__Etcd__KeyPrefix: /grade-session/local
+      Storage__Etcd__UseInsecureChannel: "true"
+
+      Jwt__Issuer: grade-session
+      Jwt__Audience: grade-session-client-app
+      Jwt__SecretKey: dev-secret-key-change-me-grade-session-very-long
+      Jwt__ExpirationDays: "90"
+
+      Invites__ClaimMode: Reject
+      Invites__TokenByteLength: "32"
+    ports:
+      - "8080:8080"
+
+volumes:
+  grade-session-etcd-data:

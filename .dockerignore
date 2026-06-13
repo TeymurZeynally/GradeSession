@@ -1,0 +1,51 @@
+# Git
+.git
+.gitignore
+
+# Docker
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# .NET build outputs
+**/bin/
+**/obj/
+**/out/
+**/TestResults/
+
+# Visual Studio / Rider / VS Code
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.rsuser
+
+# NuGet
+**/packages/
+*.nupkg
+.nuget/
+
+# Node
+**/node_modules/
+**/npm-debug.log*
+**/yarn-debug.log*
+**/yarn-error.log*
+**/pnpm-debug.log*
+
+# Node build/cache output
+**/dist/
+**/build/
+**/.next/
+**/.nuxt/
+**/.vite/
+**/.cache/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# OS files
+.DS_Store
+Thumbs.db

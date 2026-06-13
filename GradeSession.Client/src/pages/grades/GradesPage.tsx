@@ -223,7 +223,7 @@ export function GradesPage() {
               <Alert
                 type="info"
                 showIcon
-                message="Оценки сохраняются автоматически"
+                title="Оценки сохраняются автоматически"
               />
 
               <Space orientation="vertical" size={16} style={{ width: '100%' }}>
@@ -414,7 +414,7 @@ function AssessmentOverviewTable({
       {
         title: 'Студент',
         dataIndex: 'shortName',
-        width: 150,
+        width: 140,
         fixed: 'left',
         render: (_, row) => (
           <Space orientation="vertical" size={2}>
@@ -445,7 +445,7 @@ function AssessmentOverviewTable({
       {
         title: '',
         key: 'action',
-        width: 40,
+        width: 100,
         fixed: 'right',
         render: (_, row) => (
           <Button
@@ -463,11 +463,6 @@ function AssessmentOverviewTable({
   return (
     <Card
       title="Сводка по выставленным оценкам"
-      extra={
-        <Text type="secondary">
-          Цвет бейджа соответствует положению оценки в диапазоне.
-        </Text>
-      }
     >
       <Table
         size="small"
@@ -522,8 +517,14 @@ const StudentAssessmentCard = memo(function StudentAssessmentCard({
   const isNotEvaluated = presence === StudentAssessmentPresence.NotPresent;
 
   const calculatedGrade = useMemo(
-    () => calculateWeightedGrade(criteria, criteriaScores),
-    [criteria, criteriaScores],
+    () =>
+      calculateWeightedGrade(
+        criteria,
+        criteriaScores,
+        finalGradeMin,
+        finalGradeMax,
+      ),
+    [criteria, criteriaScores, finalGradeMin, finalGradeMax],
   );
 
   const completion = useMemo(
@@ -928,7 +929,7 @@ function CompactCriteriaList({
           }
 
           return (
-            <CompactCriterionAssessmentControl
+            <CriterionAssessmentControl
               key={criterion.id}
               criterion={criterion}
               value={scores[criterion.id] ?? null}
@@ -944,7 +945,7 @@ function CompactCriteriaList({
   );
 }
 
-function CompactCriterionAssessmentControl({
+function CriterionAssessmentControl({
   criterion,
   value,
   isLast,
@@ -1005,7 +1006,7 @@ function CompactCriterionAssessmentControl({
                 flexWrap: 'wrap',
               }}
             >
-              <ScoreValue value={value} />
+              <ScoreValue value={value} min={min} max={max} />
 
               <Button
                 size="small"
@@ -1065,7 +1066,7 @@ function FinalGradeControl({
             flexWrap: 'wrap',
           }}
         >
-          <ScoreValue value={value} />
+          <ScoreValue value={value} min={min} max={max} />
 
           <Space wrap>
             <Button
@@ -1154,12 +1155,20 @@ function GradeSlider({
   );
 }
 
-function ScoreValue({ value }: { value: number | null }) {
+function ScoreValue({
+  value,
+  min,
+  max,
+}: {
+  value: number | null;
+  min: number;
+  max: number;
+}) {
   if (value === null) {
     return <Tag color="default">Не выставлена</Tag>;
   }
 
-  return <ScoreBadge value={value} min={0} max={5} />;
+  return <ScoreBadge value={value} min={min} max={max} />;
 }
 
 function ScoreBadge({
@@ -1237,7 +1246,7 @@ function SaveState({
   error: string | null;
 }) {
   if (error) {
-    return <Alert type="error" showIcon message={error} />;
+    return <Alert type="error" showIcon title={error} />;
   }
 
   if (saving) {
@@ -1355,8 +1364,10 @@ function buildSaveStudentAssessmentRequest({
 function calculateWeightedGrade(
   criteria: CriterionResponse[],
   criteriaScores: CriterionScoreMap,
+  finalGradeMin: number,
+  finalGradeMax: number,
 ) {
-  let weightedSum = 0;
+  let weightedNormalizedSum = 0;
   let weightSum = 0;
 
   for (const criterion of criteria) {
@@ -1370,9 +1381,23 @@ function calculateWeightedGrade(
       continue;
     }
 
+    const criterionMin = criterion.minScore!;
+    const criterionMax = criterion.maxScore!;
+    const criterionRange = criterionMax - criterionMin;
+
+    if (criterionRange <= 0) {
+      continue;
+    }
+
     const weight = criterion.weight ?? 1;
 
-    weightedSum += score * weight;
+    if (weight <= 0) {
+      continue;
+    }
+
+    const normalizedScore = (score - criterionMin) / criterionRange;
+
+    weightedNormalizedSum += normalizedScore * weight;
     weightSum += weight;
   }
 
@@ -1380,7 +1405,9 @@ function calculateWeightedGrade(
     return null;
   }
 
-  return weightedSum / weightSum;
+  const normalizedGrade = weightedNormalizedSum / weightSum;
+
+  return finalGradeMin + normalizedGrade * (finalGradeMax - finalGradeMin);
 }
 
 function calculateStudentCompletion({
