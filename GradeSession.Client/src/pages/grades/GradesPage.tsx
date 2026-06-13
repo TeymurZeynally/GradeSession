@@ -25,6 +25,7 @@ import {
   Switch,
   Table,
   Tag,
+  Tooltip,
   Typography,
   message,
 } from 'antd';
@@ -65,6 +66,7 @@ type StudentCardProps = {
   assessment?: StudentAssessmentResponse;
   finalGradeMin: number;
   finalGradeMax: number;
+  isMobile: boolean,
   onAccessDenied: () => void;
   onSessionClosed: () => void;
 };
@@ -217,6 +219,7 @@ export function GradesPage() {
                 assessmentsByStudentId={assessmentsByStudentId}
                 finalGradeMin={finalGradeMin}
                 finalGradeMax={finalGradeMax}
+                isMobile={isMobile}
                 onScrollToStudent={scrollToStudent}
               />
 
@@ -246,6 +249,7 @@ export function GradesPage() {
                         assessment={assessmentsByStudentId.get(student.id)}
                         finalGradeMin={finalGradeMin}
                         finalGradeMax={finalGradeMax}
+                        isMobile={isMobile}
                         onAccessDenied={handleAccessDenied}
                         onSessionClosed={handleSessionClosed}
                       />
@@ -331,16 +335,12 @@ function AssessmentSummary({ progress }: { progress: AssessmentProgress }) {
             value={progress.completed}
             suffix={`/ ${progress.total}`}
           />
-
-          <Text type="secondary">
-            Студент считается заполненным, если выставлены все критерии и
-            итоговая оценка, либо выбран режим "не оцениваю".
-          </Text>
         </Card>
       </Col>
     </Row>
   );
 }
+
 
 function AssessmentOverviewTable({
   students,
@@ -348,6 +348,7 @@ function AssessmentOverviewTable({
   assessmentsByStudentId,
   finalGradeMin,
   finalGradeMax,
+  isMobile,
   onScrollToStudent,
 }: {
   students: StudentResponse[];
@@ -355,6 +356,7 @@ function AssessmentOverviewTable({
   assessmentsByStudentId: Map<string, StudentAssessmentResponse>;
   finalGradeMin: number;
   finalGradeMax: number;
+  isMobile: boolean;
   onScrollToStudent: (studentId: string) => void;
 }) {
   const rows = useMemo(
@@ -414,11 +416,26 @@ function AssessmentOverviewTable({
       {
         title: 'Студент',
         dataIndex: 'shortName',
-        width: 140,
-        fixed: 'left',
+        width: 150,
+        fixed: isMobile ? undefined : 'left',
         render: (_, row) => (
           <Space orientation="vertical" size={2}>
-            <Text strong>{row.shortName}</Text>
+            <Tooltip title="Перейти к карточке студента">
+              <Button
+                type="link"
+                size="small"
+                onClick={() => onScrollToStudent(row.studentId)}
+                style={{
+                  height: 'auto',
+                  padding: 0,
+                  whiteSpace: 'normal',
+                  textAlign: 'left',
+                  fontWeight: 600,
+                }}
+              >
+                {row.shortName} <ArrowDownOutlined />
+              </Button>
+            </Tooltip>
           </Space>
         ),
       },
@@ -442,21 +459,6 @@ function AssessmentOverviewTable({
           );
         },
       },
-      {
-        title: '',
-        key: 'action',
-        width: 100,
-        fixed: 'right',
-        render: (_, row) => (
-          <Button
-            size="small"
-            icon={<ArrowDownOutlined />}
-            onClick={() => onScrollToStudent(row.studentId)}
-          >
-            К карточке
-          </Button>
-        ),
-      },
     ];
   }, [criteria, finalGradeMax, finalGradeMin, onScrollToStudent]);
 
@@ -470,6 +472,7 @@ function AssessmentOverviewTable({
         columns={columns}
         dataSource={rows}
         pagination={false}
+        sticky
         scroll={{
           x: Math.max(620, 150 + criteria.length * 120 + 120 + 120),
         }}
@@ -489,6 +492,7 @@ const StudentAssessmentCard = memo(function StudentAssessmentCard({
   assessment,
   finalGradeMin,
   finalGradeMax,
+  isMobile,
   onAccessDenied,
   onSessionClosed,
 }: StudentCardProps) {
@@ -770,9 +774,10 @@ const StudentAssessmentCard = memo(function StudentAssessmentCard({
 
   return (
     <Card
+      className="sticky-title-card"
       title={
-        <Space size={8} wrap>
-          <Text strong>{student.fullName ?? 'Без имени'}</Text>
+        <Space size={8}>
+          <Text strong>{isMobile ? student.shortName : student.fullName ?? 'Без имени'}</Text>
           <AssessmentStatusTag
             presence={presence}
             completionPercent={completion.percent}
@@ -802,22 +807,25 @@ const StudentAssessmentCard = memo(function StudentAssessmentCard({
               progress={completion.percent}
             />
           </Col>
+          {!isMobile && (
+            <>
+              <Col xs={24} sm={8}>
+                <CompactMetricCard
+                  title="Расчётная"
+                  value={calculatedGrade === null ? '—' : formatGrade(calculatedGrade)}
+                  description="По критериям и весам"
+                />
+              </Col>
 
-          <Col xs={24} sm={8}>
-            <CompactMetricCard
-              title="Расчётная"
-              value={calculatedGrade === null ? '—' : formatGrade(calculatedGrade)}
-              description="По критериям и весам"
-            />
-          </Col>
-
-          <Col xs={24} sm={8}>
-            <CompactMetricCard
-              title="Итоговая"
-              value={finalGrade === null ? '—' : formatGrade(finalGrade)}
-              description="Итог члена комиссии"
-            />
-          </Col>
+              <Col xs={24} sm={8}>
+                <CompactMetricCard
+                  title="Итоговая"
+                  value={finalGrade === null ? '—' : formatGrade(finalGrade)}
+                  description="Итог члена комиссии"
+                />
+              </Col>
+            </>
+          )}
         </Row>
 
         <Card size="small">
@@ -828,10 +836,14 @@ const StudentAssessmentCard = memo(function StudentAssessmentCard({
               <Text strong>Воздерживаюсь от оценки</Text>
             </Space>
 
-            <Text type="secondary">
-              Используйте этот режим, если вы не присутствовали, не можете её
-              оценить или воздерживаетесь от оценки.
-            </Text>
+            <Paragraph
+              type="secondary"
+              ellipsis={{ rows: 1, expandable: true, symbol: 'ещё' }}
+              style={{ margin: 0, fontSize: 12 }}
+            >
+              Если вы не присутствовали, не можете
+              оценить работу или воздерживаетесь от оценки.
+            </Paragraph>
           </Space>
         </Card>
 
@@ -986,7 +998,7 @@ function CriterionAssessmentControl({
             {criterion.description && (
               <Paragraph
                 type="secondary"
-                ellipsis={{ rows: 2, expandable: true, symbol: 'ещё' }}
+                ellipsis={{ rows: 1, expandable: true, symbol: 'ещё' }}
                 style={{ margin: 0, fontSize: 12 }}
               >
                 {criterion.description}
@@ -1075,7 +1087,7 @@ function FinalGradeControl({
               disabled={!calculatedGradeIsAvailable}
               onClick={onApplyCalculated}
             >
-              Использовать расчётную
+              Расчётная
               {calculatedGradeIsAvailable
                 ? ` (${formatGrade(
                     clampGrade(roundToStep(calculatedGrade, 0.1), min, max),
@@ -1210,7 +1222,7 @@ function AssessmentStatusTag({
   completionPercent: number;
 }) {
   if (presence === StudentAssessmentPresence.NotPresent) {
-    return <Tag color="warning">Воздерживаюсь от оценки</Tag>;
+    return <Tag color="warning">Воздерживаюсь</Tag>;
   }
 
   if (completionPercent === 100) {

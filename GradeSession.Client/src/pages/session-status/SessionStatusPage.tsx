@@ -294,7 +294,7 @@ function OverallProgressCards({
   return (
     <Row gutter={[16, 16]}>
       <Col xs={24} md={8}>
-        <Card style={{height: 160}}>
+        <Card style={{height: "100%"}}>
           <Statistic
             title="Общий прогресс оценивания"
             value={progress.percent}
@@ -315,7 +315,7 @@ function OverallProgressCards({
       </Col>
 
       <Col xs={24} md={8}>
-        <Card style={{height: 160}}>
+        <Card style={{height: "100%"}}>
           <Statistic
             title="Члены комиссии"
             value={progress.membersClaimed}
@@ -330,7 +330,7 @@ function OverallProgressCards({
       </Col>
 
       <Col xs={24} md={8}>
-        <Card style={{height: 160}}>
+        <Card style={{height: "100%"}}>
           <Statistic
             title="Студенты по которым начато оценивание"
             value={progress.assessedStudents}
@@ -345,7 +345,7 @@ function OverallProgressCards({
       </Col>
 
       <Col xs={24} md={12}>
-        <Card style={{height: 140}}>
+        <Card style={{height: "100%"}}>
           <Statistic
             title="Заполненные оценки по критериям"
             value={progress.filledCriterionScores}
@@ -363,7 +363,7 @@ function OverallProgressCards({
       </Col>
 
       <Col xs={24} md={12}>
-        <Card style={{height: 140}}>
+        <Card style={{height: "100%"}}>
           <Statistic
             title="Заполненные итоговые оценки"
             value={progress.filledFinalGrades}
@@ -526,18 +526,17 @@ function FinishActions({
       <Popconfirm
         title="Завершить оценивание?"
         description="После этого члены комиссии не смогут изменить оценки."
-        okText="Завершить и перейти к результатам"
+        okText="Завершить"
         cancelText="Отмена"
         onConfirm={onClose}
       >
         <Button
           type="primary"
           danger
-          size="large"
           icon={<CloseCircleOutlined />}
           loading={closeLoading}
         >
-          Завершить оценивание и перейти к результатам
+          Завершить оценивание
         </Button>
       </Popconfirm>
     </Space>

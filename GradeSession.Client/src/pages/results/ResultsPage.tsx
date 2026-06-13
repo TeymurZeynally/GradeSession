@@ -428,6 +428,9 @@ function ResultsTable({
 }) {
   const [tableMode, setTableMode] = useState<ResultsTableMode>('full');
 
+  const screens = Grid.useBreakpoint();
+  const isMobile = !screens.md;
+
   const fullColumns = useMemo<TableColumnsType<ResultsRow>>(() => {
     const committeeColumns: TableColumnsType<ResultsRow> = committeeMembers.map(
       (member) => ({
@@ -558,7 +561,7 @@ function ResultsTable({
         dataIndex: 'shortName',
         key: 'student',
         width: 170,
-        fixed: 'left',
+        fixed: isMobile ? undefined : 'left',
         render: (_: unknown, row: ResultsRow) => (
           <Space orientation="vertical" size={2}>
             <Text strong>{row.shortName}</Text>
@@ -573,10 +576,10 @@ function ResultsTable({
       ...committeeColumns,
       ...averageColumns,
       {
-        title: 'Оценка по итогам обсуждения',
+        title: 'Итоговая оценка',
         key: 'discussion-final-grade',
         width: canEditDiscussionGrades ? 150 : 120,
-        fixed: 'right',
+        fixed: isMobile ? undefined : 'right',
         align: 'center',
         render: (_: unknown, row: ResultsRow) => {
           const result = finalResultsByStudentId.get(row.studentId);
@@ -626,7 +629,7 @@ function ResultsTable({
         ),
       },
       {
-        title: 'Оценка по итогам обсуждения',
+        title: 'Итоговая оценка',
         key: 'discussion-final-grade',
         align: 'center',
         render: (_: unknown, row: ResultsRow) => {
@@ -707,6 +710,7 @@ function ResultsTable({
       >
         <Table
           size="small"
+          sticky
           bordered
           rowKey="key"
           columns={columns}

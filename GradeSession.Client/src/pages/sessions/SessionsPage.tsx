@@ -173,10 +173,6 @@ function SessionCard({
               <Text type="secondary">
                 Студентов: {session.students?.length ?? 0}
               </Text>
-
-              <Text type="secondary">
-                Критериев: {session.criteria?.length ?? 0}
-              </Text>
             </Space>
           </div>
 
@@ -218,8 +214,7 @@ function RoleAction({
     return (
       <Link to={`/sessions/${session.id}/status`}>
         <Button>
-          Секретарь
-          {slot.shortName ? `: ${slot.shortName}` : ''}
+          {slot.shortName ? `${slot.shortName}` : ''}
         </Button>
       </Link>
     );
@@ -229,8 +224,7 @@ function RoleAction({
     return (
       <Link to={`/sessions/${session.id}/grades/${slot.id}`}>
         <Button>
-          Член комиссии
-          {slot.shortName ? `: ${slot.shortName}` : ''}
+          {slot.shortName ? `${slot.shortName}` : ''}
         </Button>
       </Link>
     );
