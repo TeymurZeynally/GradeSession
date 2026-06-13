@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="GradeSession.Server/GradeSession.Client.esproj" />
+  <Project Path="GradeSession.Server/GradeSession.Server.csproj" />
+</Solution>
