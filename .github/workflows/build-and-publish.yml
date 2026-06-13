@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
-      contents: read
+      contents: write
       packages: write
 
     steps:
@@ -34,10 +34,18 @@ jobs:
       - name: Build solution
         run: dotnet build ${{ env.SOLUTION_FILE }} --configuration Release --no-restore
 
-      - name: Prepare lowercase image name
+      - name: Prepare image and release names
+        id: vars
+        shell: bash
         run: |
-          IMAGE_NAME="ghcr.io/${GITHUB_REPOSITORY}"
-          echo "IMAGE_NAME=${IMAGE_NAME,,}" >> $GITHUB_ENV
+          IMAGE_NAME="ghcr.io/${GITHUB_REPOSITORY,,}"
+          RELEASE_TAG="v0.0.${GITHUB_RUN_NUMBER}"
+
+          echo "image_name=$IMAGE_NAME" >> "$GITHUB_OUTPUT"
+          echo "release_tag=$RELEASE_TAG" >> "$GITHUB_OUTPUT"
+
+          echo "Image name: $IMAGE_NAME"
+          echo "Release tag: $RELEASE_TAG"
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v4
@@ -50,16 +58,18 @@ jobs:
         id: meta
         uses: docker/metadata-action@v6
         with:
-          images: ${{ env.IMAGE_NAME }}
+          images: ${{ steps.vars.outputs.image_name }}
           tags: |
             type=raw,value=latest
             type=raw,value=main
+            type=raw,value=${{ steps.vars.outputs.release_tag }}
             type=sha,prefix=sha-
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 
       - name: Build and push Docker image
+        id: build
         uses: docker/build-push-action@v7
         with:
           context: ${{ env.BUILD_CONTEXT }}
@@ -74,16 +84,30 @@ jobs:
           RELEASE_TAG: ${{ steps.vars.outputs.release_tag }}
           IMAGE_NAME: ${{ steps.vars.outputs.image_name }}
           IMAGE_DIGEST: ${{ steps.build.outputs.digest }}
+        shell: bash
         run: |
-          gh release create "$RELEASE_TAG" \
-            --target "$GITHUB_SHA" \
-            --title "$RELEASE_TAG" \
-            --generate-notes \
-            --notes "Docker image published:
+          if [ -z "$RELEASE_TAG" ]; then
+            echo "RELEASE_TAG is empty"
+            exit 1
+          fi
+
+          if [ -z "$IMAGE_NAME" ]; then
+            echo "IMAGE_NAME is empty"
+            exit 1
+          fi
+
+          cat > release-notes.md <<EOF
+          Docker image published:
 
           \`\`\`
           $IMAGE_NAME:$RELEASE_TAG
           $IMAGE_NAME:latest
           $IMAGE_NAME:main
           Digest: $IMAGE_DIGEST
-          \`\`\`"
+          \`\`\`
+          EOF
+
+          gh release create "$RELEASE_TAG" \
+            --target "$GITHUB_SHA" \
+            --title "$RELEASE_TAG" \
+            --notes-file release-notes.md
