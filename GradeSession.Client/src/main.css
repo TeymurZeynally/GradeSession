@@ -1,3 +1,7 @@
+body {
+  margin: 0;
+}
+
 .sticky-title-card > .ant-card-head {
   position: sticky;
   top: 0;
