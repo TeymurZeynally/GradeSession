@@ -86,16 +86,6 @@ jobs:
           IMAGE_DIGEST: ${{ steps.build.outputs.digest }}
         shell: bash
         run: |
-          if [ -z "$RELEASE_TAG" ]; then
-            echo "RELEASE_TAG is empty"
-            exit 1
-          fi
-
-          if [ -z "$IMAGE_NAME" ]; then
-            echo "IMAGE_NAME is empty"
-            exit 1
-          fi
-
           cat > release-notes.md <<EOF
           Docker image published:
 
