@@ -71,27 +71,28 @@ export function InvitesPage() {
   const [visibleQrByKey, setVisibleQrByKey] = useState<Record<string, boolean>>(
     {},
   );
-  const [issueAccessDenied, setIssueAccessDenied] = useState(false);
+  const [hasAccessDenied, setHasAccessDenied] = useState(false);
 
   const sessionQuery = useGetApiV1SessionsSessionId(sessionId ?? '', {
     query: {
-      enabled: Boolean(sessionId),
+      enabled: !hasAccessDenied && Boolean(sessionId),
     },
   });
 
   const invitesQuery = useGetApiV1SessionsSessionIdInvites(sessionId ?? '', {
     query: {
-      enabled: Boolean(sessionId),
+      enabled: !hasAccessDenied && Boolean(sessionId),
       refetchInterval: 2000,
     },
   });
 
   const issueInvitesMutation = usePostApiV1SessionsSessionIdInvitesIssue();
 
-  const hasAccessDenied =
-    issueAccessDenied ||
-    getHttpStatus(sessionQuery.error) === 403 ||
-    getHttpStatus(invitesQuery.error) === 403;
+  useEffect(() => {
+    if(getHttpStatus(sessionQuery.error) === 403 || getHttpStatus(invitesQuery.error) === 403){
+      setHasAccessDenied(true);
+    }
+  },[sessionQuery.error, invitesQuery.error])
 
   const rows = useMemo(
     () =>
@@ -119,7 +120,7 @@ export function InvitesPage() {
         return;
       }
 
-      setIssueAccessDenied(false);
+      setHasAccessDenied(false);
 
       try {
         const response = await issueInvitesMutation.mutateAsync({ sessionId });
@@ -137,7 +138,7 @@ export function InvitesPage() {
         }
       } catch (error) {
         if (getHttpStatus(error) === 403) {
-          setIssueAccessDenied(true);
+          setHasAccessDenied(true);
           return;
         }
 
