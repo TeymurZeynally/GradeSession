@@ -9,7 +9,7 @@ env:
   DOTNET_VERSION: '10.0.x'
   SOLUTION_FILE: './GradeSession.slnx'
   DOCKERFILE: './GradeSession.Server/Dockerfile'
-  DOCKER_CONTEXT: '.'
+  BUILD_CONTEXT: '.'
 
 jobs:
   build-and-publish:
@@ -62,8 +62,28 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v7
         with:
-          context: ${{ env.DOCKER_CONTEXT }}
+          context: ${{ env.BUILD_CONTEXT }}
           file: ${{ env.DOCKERFILE }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ steps.vars.outputs.release_tag }}
+          IMAGE_NAME: ${{ steps.vars.outputs.image_name }}
+          IMAGE_DIGEST: ${{ steps.build.outputs.digest }}
+        run: |
+          gh release create "$RELEASE_TAG" \
+            --target "$GITHUB_SHA" \
+            --title "$RELEASE_TAG" \
+            --generate-notes \
+            --notes "Docker image published:
+
+          \`\`\`
+          $IMAGE_NAME:$RELEASE_TAG
+          $IMAGE_NAME:latest
+          $IMAGE_NAME:main
+          Digest: $IMAGE_DIGEST
+          \`\`\`"
